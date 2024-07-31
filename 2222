@@ -1,0 +1,26 @@
+# tokenizer ve model yükleme
+tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert", proxies = proxies)
+model = AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert", proxies = proxies)
+
+# Veri setindeki her bir benzersiz tarihi yinele
+for index, row in a.iterrows():
+    # Tek bir haberin metnini al
+    single_news_df = pd.DataFrame([row], columns=a.columns)
+    
+    # Bu tek haber için duygu analizi yap
+    sentiment_df = historicalSentiment(single_news_df)
+    
+    # Analiz sonuçlarını `a` DataFrame'ine kaydet
+    if not sentiment_df.empty:
+        a.at[index, 'tickers'] = sentiment_df.index.tolist()
+        a.at[index, 'positive'] = sentiment_df['positive'].values.tolist()
+        a.at[index, 'negative'] = sentiment_df['negative'].values.tolist()
+        a.at[index, 'neutral'] = sentiment_df['neutral'].values.tolist()
+    else:
+        a.at[index, 'tickers'] = []
+        a.at[index, 'positive'] = []
+        a.at[index, 'negative'] = []
+        a.at[index, 'neutral'] = []
+
+# Sonuçları kontrol et
+print(a[['date', 'tickers', 'positive', 'negative', 'neutral']])
