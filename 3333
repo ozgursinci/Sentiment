@@ -1,0 +1,32 @@
+def historicalSentiment(df):
+    tempTickers = []
+    tempPosList = []
+    tempNegList = []
+    tempNeuList = []
+    sentence_count = 0
+    ticker_count = 0
+
+    for index, row in df.iterrows():
+        sentenceList = split_into_sentences(row['alltext'])
+        for sentence in sentenceList:
+            sentence_count += 1 
+            for ticker in usTickers:
+                if ticker in sentence:
+                    ticker_count += 1 
+                    tempTickers.append(ticker)
+                    sentiment = calculateSentiment(sentence)
+                    tempPosList.append(sentiment[0])
+                    tempNegList.append(sentiment[1])
+                    tempNeuList.append(sentiment[2])
+    
+    if tempTickers:
+        resultDf = pd.DataFrame(list(zip(tempTickers, tempPosList, tempNegList, tempNeuList)), columns=["ticker", "positive", "negative", "neutral"])
+        resultDf["positive"] = resultDf["positive"] * 100
+        resultDf["negative"] = resultDf["negative"] * 100
+        resultDf["neutral"] = resultDf["neutral"] * 100
+        resultDf["date"] = df['date'].iloc[-1]
+        resultDf = resultDf.groupby(["ticker"]).mean().reset_index()
+    else:
+        resultDf = pd.DataFrame()
+
+    return resultDf
