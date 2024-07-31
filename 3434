@@ -1,0 +1,44 @@
+# Ensure columns exist
+if 'tickers' not in a.columns:
+    a['tickers'] = np.nan
+if 'positive' not in a.columns:
+    a['positive'] = np.nan
+if 'negative' not in a.columns:
+    a['negative'] = np.nan
+if 'neutral' not in a.columns:
+    a['neutral'] = np.nan
+
+# Ensure each column is ready to accept list type
+a['tickers'] = a['tickers'].astype(object)
+a['positive'] = a['positive'].astype(object)
+a['negative'] = a['negative'].astype(object)
+a['neutral'] = a['neutral'].astype(object)
+
+# Define the tokenizer and model
+tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert", proxies=proxies)
+model = AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert", proxies=proxies)
+
+# Update historicalSentiment function if needed
+
+# Iterate over DataFrame safely
+for index, row in a.iterrows():
+    # Single row DataFrame
+    single_news_df = a.loc[[index]]
+
+    # Analyze sentiment
+    sentiment_df = historicalSentiment(single_news_df)
+
+    # If sentiment_df is not empty, store results
+    if not sentiment_df.empty:
+        a.at[index, 'tickers'] = sentiment_df['ticker'].tolist()
+        a.at[index, 'positive'] = sentiment_df['positive'].tolist()
+        a.at[index, 'negative'] = sentiment_df['negative'].tolist()
+        a.at[index, 'neutral'] = sentiment_df['neutral'].tolist()
+    else:
+        a.at[index, 'tickers'] = []
+        a.at[index, 'positive'] = []
+        a.at[index, 'negative'] = []
+        a.at[index, 'neutral'] = []
+
+# Check results
+print(a[['date', 'tickers', 'positive', 'negative', 'neutral']])
